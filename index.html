@@ -1,0 +1,124 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>工程量計算機</title>
+    <style>
+        :root { --primary-color: #007aff; --bg-color: #f2f2f7; }
+        body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; background: var(--bg-color); margin: 0; padding: 15px; padding-bottom: 50px; }
+        .card { background: white; border-radius: 15px; padding: 20px; box-shadow: 0 4px 12px rgba(0,0,0,0.08); margin-bottom: 20px; }
+        h2 { color: var(--primary-color); margin-top: 0; font-size: 1.1rem; display: flex; justify-content: space-between; }
+        .input-row { display: flex; gap: 10px; margin-bottom: 12px; }
+        input, select { flex: 1; padding: 12px; border: 1px solid #ddd; border-radius: 10px; font-size: 16px; outline: none; }
+        button.add-btn { width: 100%; background: var(--primary-color); color: white; border: none; padding: 15px; border-radius: 10px; font-size: 16px; font-weight: 600; cursor: pointer; }
+        table { width: 100%; border-collapse: collapse; margin-top: 15px; }
+        th { text-align: left; color: #888; font-size: 0.8rem; padding-bottom: 8px; }
+        td { padding: 10px 0; border-top: 1px solid #f0f0f0; font-size: 0.9rem; }
+        .del-btn { color: #ff3b30; cursor: pointer; border: none; background: none; font-size: 14px; }
+        .total-area { background: #e9f2ff; padding: 12px; border-radius: 10px; color: #0056b3; font-weight: bold; margin-top: 10px; text-align: right; }
+    </style>
+</head>
+<body>
+
+    <h1 style="font-size: 1.5rem; text-align: center;">🏗️ 工程計算小幫手</h1>
+
+    <div class="card">
+        <h2>水泥澆置 (m³)</h2>
+        <div class="input-row">
+            <input type="number" id="cL" placeholder="長">
+            <input type="number" id="cW" placeholder="寬">
+            <input type="number" id="cH" placeholder="高">
+        </div>
+        <button class="add-btn" onclick="addItem('concrete')">新增紀錄</button>
+        <div id="list-concrete"></div>
+        <div class="total-area" id="total-concrete">總計：0.00 m³</div>
+    </div>
+
+    <div class="card">
+        <h2>鋼筋重量 (kg)</h2>
+        <div class="input-row">
+            <select id="rType">
+                <option value="0.56">D10 (0.56)</option>
+                <option value="0.994">D13 (0.994)</option>
+                <option value="1.56">D16 (1.56)</option>
+                <option value="2.25">D19 (2.25)</option>
+            </select>
+            <input type="number" id="rLen" placeholder="長度">
+            <input type="number" id="rNum" placeholder="根數">
+        </div>
+        <button class="add-btn" onclick="addItem('rebar')">新增紀錄</button>
+        <div id="list-rebar"></div>
+        <div class="total-area" id="total-rebar">總計：0.00 kg</div>
+    </div>
+
+    <div class="card">
+        <h2>模板面積 (m²)</h2>
+        <div class="input-row">
+            <input type="number" id="fL" placeholder="長">
+            <input type="number" id="fW" placeholder="寬">
+            <select id="fSide">
+                <option value="1">單面</option>
+                <option value="2">雙面</option>
+            </select>
+        </div>
+        <button class="add-btn" onclick="addItem('form')">新增紀錄</button>
+        <div id="list-form"></div>
+        <div class="total-area" id="total-form">總計：0.00 m²</div>
+    </div>
+
+    <script>
+        // 初始化數據，從 LocalStorage 讀取
+        let db = JSON.parse(localStorage.getItem('engData')) || { concrete: [], rebar: [], form: [] };
+
+        function save() {
+            localStorage.setItem('engData', JSON.stringify(db));
+            renderAll();
+        }
+
+        function addItem(type) {
+            let item = {};
+            if (type === 'concrete') {
+                let l = document.getElementById('cL').value, w = document.getElementById('cW').value, h = document.getElementById('cH').value;
+                if(!l || !w || !h) return;
+                item = { val: l * w * h, info: `${l}×${w}×${h}` };
+            } else if (type === 'rebar') {
+                let u = document.getElementById('rType').value, l = document.getElementById('rLen').value, n = document.getElementById('rNum').value;
+                if(!l || !n) return;
+                let label = document.getElementById('rType').options[document.getElementById('rType').selectedIndex].text.split(' ')[0];
+                item = { val: u * l * n, info: `${label} | ${l}m×${n}支` };
+            } else if (type === 'form') {
+                let l = document.getElementById('fL').value, w = document.getElementById('fW').value, s = document.getElementById('fSide').value;
+                if(!l || !w) return;
+                item = { val: l * w * s, info: `${l}×${w} (${s==1?'單':'雙'})` };
+            }
+            db[type].push(item);
+            save();
+            // 清空輸入框
+            if(type === 'concrete') { document.getElementById('cL').value=''; document.getElementById('cW').value=''; document.getElementById('cH').value=''; }
+        }
+
+        function del(type, index) {
+            db[type].splice(index, 1);
+            save();
+        }
+
+        function renderAll() {
+            ['concrete', 'rebar', 'form'].forEach(type => {
+                let total = 0;
+                let html = `<table>`;
+                db[type].forEach((item, i) => {
+                    total += item.val;
+                    html += `<tr><td>${item.info}</td><td style="text-align:right">${item.val.toFixed(2)}</td>
+                             <td style="text-align:right"><button class="del-btn" onclick="del('${type}',${i})">刪除</button></td></tr>`;
+                });
+                document.getElementById(`list-${type}`).innerHTML = html + `</table>`;
+                let unit = type==='concrete'?'m³':(type==='rebar'?'kg':'m²');
+                document.getElementById(`total-${type}`).innerText = `總計：${total.toFixed(2)} ${unit}`;
+            });
+        }
+
+        renderAll();
+    </script>
+</body>
+</html>

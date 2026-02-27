@@ -3,21 +3,21 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>工程計算機</title>
+    <title>工程量計算機</title>
     <style>
         :root { --primary: #007aff; --bg: #f2f2f7; }
-        body { font-family: -apple-system, sans-serif; background: var(--bg); margin: 0; padding: 15px; }
+        body { font-family: -apple-system, sans-serif; background: var(--bg); margin: 0; padding: 15px; padding-bottom: 40px; }
         .card { background: white; border-radius: 15px; padding: 15px; box-shadow: 0 4px 12px rgba(0,0,0,0.1); margin-bottom: 15px; }
-        h2 { color: var(--primary); font-size: 1.1rem; margin-top: 0; }
+        h2 { color: var(--primary); font-size: 1.1rem; margin-top: 0; border-left: 4px solid var(--primary); padding-left: 10px; }
         .row { display: flex; gap: 8px; margin-bottom: 10px; }
-        input, select { flex: 1; padding: 12px; border: 1px solid #ddd; border-radius: 8px; font-size: 16px; width: 100%; box-sizing: border-box; }
-        button { width: 100%; background: var(--primary); color: white; border: none; padding: 15px; border-radius: 10px; font-size: 16px; font-weight: bold; }
+        input, select { flex: 1; padding: 12px; border: 1px solid #ddd; border-radius: 8px; font-size: 16px; width: 100%; box-sizing: border-box; outline: none; }
+        button.add-btn { width: 100%; background: var(--primary); color: white; border: none; padding: 15px; border-radius: 10px; font-size: 16px; font-weight: bold; cursor: pointer; }
         table { width: 100%; border-collapse: collapse; margin-top: 10px; }
         td { padding: 8px 0; border-top: 1px solid #eee; font-size: 0.9rem; }
         .total { background: #e9f2ff; padding: 10px; border-radius: 8px; color: #0056b3; font-weight: bold; margin-top: 10px; text-align: right; }
-        .del { color: #ff3b30; border: none; background: none; padding: 5px; }
-        .clear-all { text-align: center; margin-top: 20px; }
-        .clear-btn { background: #ff3b30; color: white; padding: 8px 20px; border-radius: 8px; border: none; font-size: 14px; opacity: 0.8; }
+        .del-btn { color: #ff3b30; border: none; background: none; padding: 5px; cursor: pointer; }
+        .clear-all { text-align: center; margin: 20px 0; }
+        .clear-btn { background: #ff3b30; color: white; padding: 10px 25px; border-radius: 8px; border: none; font-size: 14px; cursor: pointer; opacity: 0.9; }
     </style>
 </head>
 <body>
@@ -31,7 +31,7 @@
             <input type="number" id="cW" placeholder="寬">
             <input type="number" id="cH" placeholder="高">
         </div>
-        <button onclick="add('concrete')">新增紀錄</button>
+        <button class="add-btn" onclick="add('concrete')">新增水泥紀錄</button>
         <div id="res-concrete"></div>
         <div class="total" id="tot-concrete">總計：0.00 m³</div>
     </div>
@@ -50,17 +50,33 @@
             <input type="number" id="rL" placeholder="長度">
             <input type="number" id="rN" placeholder="根數">
         </div>
-        <button onclick="add('rebar')">新增紀錄</button>
+        <button class="add-btn" onclick="add('rebar')">新增鋼筋紀錄</button>
         <div id="res-rebar"></div>
         <div class="total" id="tot-rebar">總計：0.00 kg</div>
     </div>
 
+    <div class="card">
+        <h2>模板面積 (m²)</h2>
+        <div class="row">
+            <input type="number" id="fL" placeholder="長">
+            <input type="number" id="fW" placeholder="寬">
+            <select id="fSide">
+                <option value="1">單面</option>
+                <option value="2">雙面</option>
+            </select>
+        </div>
+        <button class="add-btn" onclick="add('form')">新增模板紀錄</button>
+        <div id="res-form"></div>
+        <div class="total" id="tot-form">總計：0.00 m²</div>
+    </div>
+
     <div class="clear-all">
-        <button class="clear-btn" onclick="clearData()">🧨 清除所有紀錄</button>
+        <button class="clear-btn" onclick="clearData()">🧨 清除所有數據</button>
     </div>
 
     <script>
-        let db = JSON.parse(localStorage.getItem('engData')) || { concrete: [], rebar: [] };
+        // 從 LocalStorage 載入數據
+        let db = JSON.parse(localStorage.getItem('engData')) || { concrete: [], rebar: [], form: [] };
 
         function save() {
             localStorage.setItem('engData', JSON.stringify(db));
@@ -72,17 +88,20 @@
                 let l = document.getElementById('cL').value, w = document.getElementById('cW').value, h = document.getElementById('cH').value;
                 if(l && w && h) {
                     db.concrete.push({v: l*w*h, t: l+'×'+w+'×'+h});
-                    document.getElementById('cL').value = ''; 
-                    document.getElementById('cW').value = ''; 
-                    document.getElementById('cH').value = '';
+                    document.getElementById('cL').value=''; document.getElementById('cW').value=''; document.getElementById('cH').value='';
                 }
-            } else {
+            } else if (type === 'rebar') {
                 let u = document.getElementById('rT').value, l = document.getElementById('rL').value, n = document.getElementById('rN').value;
                 if(l && n) {
                     let name = document.getElementById('rT').options[document.getElementById('rT').selectedIndex].text.split(' (')[0];
                     db.rebar.push({v: u*l*n, t: name+' | '+l+'m×'+n+'支'});
-                    document.getElementById('rL').value = '';
-                    document.getElementById('rN').value = '';
+                    document.getElementById('rL').value=''; document.getElementById('rN').value='';
+                }
+            } else if (type === 'form') {
+                let l = document.getElementById('fL').value, w = document.getElementById('fW').value, s = document.getElementById('fSide').value;
+                if(l && w) {
+                    db.form.push({v: l*w*s, t: l+'×'+w+' ('+(s==1?'單':'雙')+')'});
+                    document.getElementById('fL').value=''; document.getElementById('fW').value='';
                 }
             }
             save();
@@ -95,23 +114,26 @@
 
         function clearData() {
             if(confirm('確定要清空所有紀錄嗎？')) {
-                db = { concrete: [], rebar: [] };
+                db = { concrete: [], rebar: [], form: [] };
                 save();
             }
         }
 
         function render() {
-            ['concrete', 'rebar'].forEach(type => {
+            ['concrete', 'rebar', 'form'].forEach(type => {
                 let total = 0;
                 let html = '<table>';
                 db[type].forEach((item, i) => {
                     total += item.v;
-                    html += '<tr><td>'+item.t+'</td><td align="right">'+item.v.toFixed(2)+'</td><td align="right"><button class="del" onclick="del(\''+type+'\','+i+')">刪除</button></td></tr>';
+                    html += '<tr><td>'+item.t+'</td><td align="right">'+item.v.toFixed(2)+'</td>';
+                    html += '<td align="right"><button class="del-btn" onclick="del(\''+type+'\','+i+')">刪除</button></td></tr>';
                 });
                 document.getElementById('res-'+type).innerHTML = html + '</table>';
-                document.getElementById('tot-'+type).innerText = '總計：'+total.toFixed(2) + (type==='concrete'?' m³':' kg');
+                let unit = (type==='concrete'?' m³':(type==='rebar'?' kg':' m²'));
+                document.getElementById('tot-'+type).innerText = '總計：'+total.toFixed(2) + unit;
             });
         }
+
         render();
     </script>
 </body>

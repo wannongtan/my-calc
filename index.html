@@ -18,23 +18,23 @@
         .del-btn { color: #ff3b30; border: none; background: none; padding: 5px; cursor: pointer; }
         .clear-all { text-align: center; margin: 20px 0; }
         .clear-btn { background: #ff3b30; color: white; padding: 10px 25px; border-radius: 8px; border: none; font-size: 14px; cursor: pointer; }
-        .formula-hint { font-size: 0.75rem; color: #888; margin-bottom: 10px; }
+        .hint { font-size: 0.75rem; color: #888; margin-bottom: 5px; }
     </style>
 </head>
 <body>
 
-    <h1 style="text-align:center; font-size:1.4rem;">🏗️ 工程計算小幫手</h1>
+    <h1 style="text-align:center; font-size:1.4rem;">🏗️ 工地計算小幫手</h1>
 
     <div class="card">
         <h2>高程計算 (放樣)</h2>
-        <p class="formula-hint">公式：(基準點 + 後視) - 設計高 = 箱尺讀數</p>
+        <div class="hint">公式：(BM + BS) - 設計高 = 讀數</div>
         <div class="row">
-            <input type="number" id="elevBM" placeholder="基準點(BM)">
+            <input type="number" id="elevBM" placeholder="基準(BM)">
             <input type="number" id="elevBS" placeholder="後視(BS)">
-            <input type="number" id="elevDesign" placeholder="設計高">
+            <input type="number" id="elevDS" placeholder="設計高">
         </div>
-        <button class="add-btn" onclick="add('leveling')">計算並紀錄讀數</button>
-        <div id="res-leveling"></div>
+        <button class="add-btn" onclick="addItem('leveling')">計算並紀錄</button>
+        <div id="list-leveling"></div>
         <div class="total" id="tot-leveling">應讀數：0.000 m</div>
     </div>
 
@@ -45,8 +45,8 @@
             <input type="number" id="cW" placeholder="寬">
             <input type="number" id="cH" placeholder="高">
         </div>
-        <button class="add-btn" onclick="add('concrete')">新增水泥紀錄</button>
-        <div id="res-concrete"></div>
+        <button class="add-btn" onclick="addItem('concrete')">新增水泥紀錄</button>
+        <div id="list-concrete"></div>
         <div class="total" id="tot-concrete">總計：0.00 m³</div>
     </div>
 
@@ -61,11 +61,11 @@
                 <option value="3.040">D22 #7 (3.040)</option>
                 <option value="3.980">D25 #8 (3.980)</option>
             </select>
-            <input type="number" id="rL" placeholder="長度">
+            <input type="number" id="rL" placeholder="長度(m)">
             <input type="number" id="rN" placeholder="根數">
         </div>
-        <button class="add-btn" onclick="add('rebar')">新增鋼筋紀錄</button>
-        <div id="res-rebar"></div>
+        <button class="add-btn" onclick="addItem('rebar')">新增鋼筋紀錄</button>
+        <div id="list-rebar"></div>
         <div class="total" id="tot-rebar">總計：0.00 kg</div>
     </div>
 
@@ -74,21 +74,22 @@
         <div class="row">
             <input type="number" id="fL" placeholder="長">
             <input type="number" id="fW" placeholder="寬">
-            <select id="fSide">
+            <select id="fS">
                 <option value="1">單面</option>
                 <option value="2">雙面</option>
             </select>
         </div>
-        <button class="add-btn" onclick="add('form')">新增模板紀錄</button>
-        <div id="res-form"></div>
+        <button class="add-btn" onclick="addItem('form')">新增模板紀錄</button>
+        <div id="list-form"></div>
         <div class="total" id="tot-form">總計：0.00 m²</div>
     </div>
 
     <div class="clear-all">
-        <button class="clear-btn" onclick="clearData()">🧨 清除所有數據</button>
+        <button class="clear-btn" onclick="clearAll()">🧨 清除所有數據</button>
     </div>
 
     <script>
+        // 初始化數據
         let db = JSON.parse(localStorage.getItem('engData')) || { concrete: [], rebar: [], form: [], leveling: [] };
 
         function save() {
@@ -96,38 +97,52 @@
             render();
         }
 
-        function add(type) {
-            if (type === 'leveling') {
-                let bm = parseFloat(document.getElementById('elevBM').value) || 0;
-                let bs = parseFloat(document.getElementById('elevBS').value) || 0;
-                let ds = parseFloat(document.getElementById('elevDesign').value) || 0;
-                if(bm && ds) {
-                    let reading = (bm + bs) - ds;
-                    db.leveling.push({v: reading, t: `BM:${bm}+BS:${bs}-設:${ds}`});
-                    // 設計高通常每點不同，後視BS跟基準點BM通常不動，所以只清空設計高
-                    document.getElementById('elevDesign').value = '';
-                }
-            } else if (type === 'concrete') {
-                let l = document.getElementById('cL').value, w = document.getElementById('cW').value, h = document.getElementById('cH').value;
+        function addItem(type) {
+            let val = 0;
+            let info = "";
+
+            if (type === 'concrete') {
+                let l = parseFloat(document.getElementById('cL').value) || 0;
+                let w = parseFloat(document.getElementById('cW').value) || 0;
+                let h = parseFloat(document.getElementById('cH').value) || 0;
                 if(l && w && h) {
-                    db.concrete.push({v: l*w*h, t: l+'×'+w+'×'+h});
+                    val = l * w * h;
+                    info = `${l}×${w}×${h}`;
                     document.getElementById('cL').value=''; document.getElementById('cW').value=''; document.getElementById('cH').value='';
                 }
             } else if (type === 'rebar') {
-                let u = document.getElementById('rT').value, l = document.getElementById('rLen').value, n = document.getElementById('rNum').value;
+                let unit = parseFloat(document.getElementById('rT').value);
+                let l = parseFloat(document.getElementById('rL').value) || 0;
+                let n = parseFloat(document.getElementById('rN').value) || 0;
                 if(l && n) {
+                    val = unit * l * n;
                     let name = document.getElementById('rT').options[document.getElementById('rT').selectedIndex].text.split(' (')[0];
-                    db.rebar.push({v: u*l*n, t: name+' | '+l+'m×'+n+'支'});
-                    document.getElementById('rLen').value=''; document.getElementById('rNum').value='';
+                    info = `${name} | ${l}m×${n}支`;
+                    document.getElementById('rL').value=''; document.getElementById('rN').value='';
                 }
             } else if (type === 'form') {
-                let l = document.getElementById('fL').value, w = document.getElementById('fW').value, s = document.getElementById('fSide').value;
+                let l = parseFloat(document.getElementById('fL').value) || 0;
+                let w = parseFloat(document.getElementById('fW').value) || 0;
+                let s = parseInt(document.getElementById('fS').value);
                 if(l && w) {
-                    db.form.push({v: l*w*s, t: l+'×'+w+' ('+(s==1?'單':'雙')+')'});
+                    val = l * w * s;
+                    info = `${l}×${w} (${s==1?'單':'雙'})`;
                     document.getElementById('fL').value=''; document.getElementById('fW').value='';
                 }
+            } else if (type === 'leveling') {
+                let bm = parseFloat(document.getElementById('elevBM').value) || 0;
+                let bs = parseFloat(document.getElementById('elevBS').value) || 0;
+                let ds = parseFloat(document.getElementById('elevDS').value) || 0;
+                // 設計高可能是0(如海平面)，所以只要BM有填就計算
+                val = (bm + bs) - ds;
+                info = `BM:${bm}+BS:${bs}-設:${ds}`;
+                document.getElementById('elevDS').value = '';
             }
-            save();
+
+            if (info !== "") {
+                db[type].push({ v: val, t: info });
+                save();
+            }
         }
 
         function del(type, i) {
@@ -135,7 +150,7 @@
             save();
         }
 
-        function clearData() {
+        function clearAll() {
             if(confirm('確定要清空所有紀錄嗎？')) {
                 db = { concrete: [], rebar: [], form: [], leveling: [] };
                 save();
@@ -144,29 +159,24 @@
 
         function render() {
             ['concrete', 'rebar', 'form', 'leveling'].forEach(type => {
-                let total = 0;
                 let html = '<table>';
+                let sum = 0;
                 db[type].forEach((item, i) => {
-                    total = item.v; // 高程通常顯示最後一筆計算結果
-                    if(type !== 'leveling') total = 0; // 非高程則重新計算加總
-                    
-                    html += '<tr><td>'+item.t+'</td><td align="right">'+item.v.toFixed(3)+'</td>';
-                    html += '<td align="right"><button class="del-btn" onclick="del(\''+type+'\','+i+')">刪除</button></td></tr>';
+                    sum += item.v;
+                    let displayVal = type === 'leveling' ? item.v.toFixed(3) : item.v.toFixed(2);
+                    html += `<tr><td>${item.t}</td><td align="right">${displayVal}</td>
+                             <td align="right"><button class="del-btn" onclick="del('${type}',${i})">刪除</button></td></tr>`;
                 });
+                document.getElementById(`list-${type}`).innerHTML = html + '</table>';
 
-                // 水泥、鋼筋、模板需要加總
-                if(type !== 'leveling') {
-                    let sum = 0;
-                    db[type].forEach(item => sum += item.v);
-                    let unit = (type==='concrete'?' m³':(type==='rebar'?' kg':' m²'));
-                    document.getElementById('tot-'+type).innerText = '總計：'+sum.toFixed(2) + unit;
+                // 更新統計列
+                if(type === 'leveling') {
+                    let last = db.leveling.length > 0 ? db.leveling[db.leveling.length-1].v.toFixed(3) : "0.000";
+                    document.getElementById('tot-leveling').innerText = `應讀數：${last} m`;
                 } else {
-                    // 高程計算只顯示最後一筆計算出的讀數
-                    let lastVal = db.leveling.length > 0 ? db.leveling[db.leveling.length-1].v : 0;
-                    document.getElementById('tot-leveling').innerText = '應讀數：'+lastVal.toFixed(3) + ' m';
+                    let unit = type==='concrete'?' m³':(type==='rebar'?' kg':' m²');
+                    document.getElementById(`tot-${type}`).innerText = `總計：${sum.toFixed(2)}${unit}`;
                 }
-                
-                document.getElementById('res-'+type).innerHTML = html + '</table>';
             });
         }
 

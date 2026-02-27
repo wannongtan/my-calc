@@ -3,16 +3,16 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>工程量計算機 - 莫蘭迪版</title>
+    <title>工程量計算機 - 深莫蘭迪版</title>
     <style>
         :root { 
-            --primary: #92a9bd;    /* 灰石藍 */
-            --bg: #ebe8e2;         /* 莫蘭迪米白 */
-            --success: #a7bcb9;    /* 煙燻綠 */
-            --warning: #c0a080;    /* 灰陶色 */
+            --primary: #7b90a4;    /* 深石藍 */
+            --bg: #dcd7cf;         /* 深莫蘭迪灰底 */
+            --success: #8ba09e;    /* 深煙燻綠 */
+            --warning: #a68a6d;    /* 深焦糖褐 */
             --card-bg: #ffffff;
-            --text: #555555;
-            --border: #d1d1d1;
+            --text: #333333;       /* 深碳灰 */
+            --border: #b8b8b8;
         }
         body { 
             font-family: -apple-system, "Segoe UI", sans-serif; 
@@ -26,91 +26,92 @@
             background: var(--card-bg); 
             border-radius: 12px; 
             padding: 18px; 
-            box-shadow: 0 2px 10px rgba(0,0,0,0.05); 
+            box-shadow: 0 4px 15px rgba(0,0,0,0.1); 
             margin-bottom: 20px; 
         }
-        h1 { font-size: 1.3rem; color: #7e8a97; text-align: center; margin-bottom: 20px; }
+        h1 { font-size: 1.4rem; color: #5a6b7a; text-align: center; margin-bottom: 20px; font-weight: 700; }
         h2 { 
             color: var(--primary); 
-            font-size: 1.05rem; 
+            font-size: 1.1rem; 
             margin-top: 0; 
-            border-left: 3px solid var(--primary); 
+            border-left: 5px solid var(--primary); 
             padding-left: 10px; 
             margin-bottom: 15px;
         }
+        .card.tp h2 { color: var(--warning); border-left-color: var(--warning); }
         .row { display: flex; gap: 8px; margin-bottom: 10px; }
         input, select { 
             flex: 1; 
-            padding: 12px; 
+            padding: 14px; 
             border: 1px solid var(--border); 
             border-radius: 8px; 
             font-size: 16px; 
             width: 100%; 
             box-sizing: border-box; 
             outline: none; 
-            background: #fafafa;
+            background: #fdfdfd;
             color: var(--text);
         }
         button { 
             width: 100%; 
             border: none; 
-            padding: 14px; 
-            border-radius: 8px; 
+            padding: 15px; 
+            border-radius: 10px; 
             font-size: 16px; 
-            font-weight: 600; 
+            font-weight: bold; 
             cursor: pointer; 
             color: white; 
-            transition: opacity 0.2s;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
         }
-        button:active { opacity: 0.8; }
+        button:active { transform: scale(0.98); opacity: 0.9; }
         .add-btn { background: var(--primary); margin-bottom: 6px; }
         .tp-btn { background: var(--success); }
         .total { 
-            background: #f8f9fa; 
-            padding: 10px; 
-            border-radius: 6px; 
-            color: #7e8a97; 
-            font-weight: bold; 
-            margin-top: 12px; 
+            background: #f1f3f5; 
+            padding: 12px; 
+            border-radius: 8px; 
+            color: #5a6b7a; 
+            font-weight: 800; 
+            margin-top: 15px; 
             text-align: right; 
-            border: 1px inset #eee;
+            border: 1px solid #e0e0e0;
         }
         table { width: 100%; border-collapse: collapse; margin-top: 12px; }
-        td { padding: 10px 0; border-top: 1px solid #f0f0f0; font-size: 0.85rem; color: #777; }
-        .del-btn { color: var(--warning); border: none; background: none; font-size: 13px; cursor: pointer; }
+        td { padding: 12px 0; border-top: 1px solid #eee; font-size: 0.9rem; color: #444; }
+        .del-btn { color: #cc7a7a; border: none; background: none; font-size: 14px; cursor: pointer; font-weight: bold; }
         .clear-all { text-align: center; margin: 40px 0; }
-        .clear-btn { background: var(--warning); opacity: 0.85; padding: 10px 30px; }
-        .hint { font-size: 0.7rem; color: #999; margin-bottom: 5px; }
+        .clear-btn { background: var(--warning); padding: 12px 35px; box-shadow: 0 4px 10px rgba(0,0,0,0.15); }
+        .hint { font-size: 0.75rem; color: #777; margin-bottom: 6px; font-style: italic; }
     </style>
 </head>
 <body>
 
-    <h1>🏗️ 工程計算小幫手</h1>
+    <h1>🏗️ 工地計算小幫手</h1>
 
     <div class="card">
         <h2>高程放樣 (Stakeout)</h2>
         <div class="hint">公式：(BM + BS) - 設計高 = 讀數</div>
         <div class="row">
-            <input type="number" id="stBM" placeholder="基準(BM)" step="0.001">
-            <input type="number" id="stBS" placeholder="後視(BS)" step="0.001">
+            <input type="number" id="stBM" placeholder="基準點 BM" step="0.001">
+            <input type="number" id="stBS" placeholder="後視讀數 BS" step="0.001">
         </div>
         <div class="row">
-            <input type="number" id="stDS" placeholder="設計高" step="0.001">
+            <input type="number" id="stDS" placeholder="設計高程" step="0.001">
         </div>
         <button class="add-btn" onclick="calcItem('leveling')">計算放樣讀數</button>
         <div id="list-leveling"></div>
         <div class="total" id="tot-leveling">應讀數：0.000 m</div>
     </div>
 
-    <div class="card" style="border-top: 4px solid var(--success);">
+    <div class="card tp" style="border-top: 6px solid var(--success);">
         <h2>控制點轉點 (TP)</h2>
         <div class="hint">公式：(BM + BS) - FS = 新點高程</div>
         <div class="row">
-            <input type="number" id="tpBM" placeholder="舊基準(BM)" step="0.001">
-            <input type="number" id="tpBS" placeholder="後視(BS)" step="0.001">
+            <input type="number" id="tpBM" placeholder="舊基準 BM" step="0.001">
+            <input type="number" id="tpBS" placeholder="後視讀數 BS" step="0.001">
         </div>
         <div class="row">
-            <input type="number" id="tpFS" placeholder="前視(FS)" step="0.001">
+            <input type="number" id="tpFS" placeholder="前視讀數 FS" step="0.001">
         </div>
         <button class="tp-btn" onclick="calcItem('transfer')">計算新點高程</button>
         <div id="list-transfer"></div>
@@ -120,9 +121,9 @@
     <div class="card">
         <h2>水泥澆置 (m³)</h2>
         <div class="row">
-            <input type="number" id="cL" placeholder="長">
-            <input type="number" id="cW" placeholder="寬">
-            <input type="number" id="cH" placeholder="高">
+            <input type="number" id="cL" placeholder="長度 (m)">
+            <input type="number" id="cW" placeholder="寬度 (m)">
+            <input type="number" id="cH" placeholder="厚度/高度 (m)">
         </div>
         <button class="add-btn" onclick="calcItem('concrete')">新增水泥紀錄</button>
         <div id="list-concrete"></div>
@@ -140,8 +141,8 @@
                 <option value="3.040">D22 #7 (3.040)</option>
                 <option value="3.980">D25 #8 (3.980)</option>
             </select>
-            <input type="number" id="rL" placeholder="單根長度(m)">
-            <input type="number" id="rN" placeholder="根數">
+            <input type="number" id="rL" placeholder="單根長度 (m)">
+            <input type="number" id="rN" placeholder="總根數">
         </div>
         <button class="add-btn" onclick="calcItem('rebar')">新增鋼筋紀錄</button>
         <div id="list-rebar"></div>
@@ -151,8 +152,8 @@
     <div class="card">
         <h2>模板面積 (m²)</h2>
         <div class="row">
-            <input type="number" id="fL" placeholder="長">
-            <input type="number" id="fW" placeholder="寬">
+            <input type="number" id="fL" placeholder="長度 (m)">
+            <input type="number" id="fW" placeholder="寬度 (m)">
             <select id="fS">
                 <option value="1">單面</option>
                 <option value="2">雙面</option>
@@ -241,4 +242,3 @@
     </script>
 </body>
 </html>
-

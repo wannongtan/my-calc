@@ -13,16 +13,30 @@
         input, select { flex: 1; padding: 12px; border: 1px solid #ddd; border-radius: 8px; font-size: 16px; width: 100%; box-sizing: border-box; outline: none; }
         button.add-btn { width: 100%; background: var(--primary); color: white; border: none; padding: 15px; border-radius: 10px; font-size: 16px; font-weight: bold; cursor: pointer; }
         table { width: 100%; border-collapse: collapse; margin-top: 10px; }
-        td { padding: 8px 0; border-top: 1px solid #eee; font-size: 0.9rem; }
-        .total { background: #e9f2ff; padding: 10px; border-radius: 8px; color: #0056b3; font-weight: bold; margin-top: 10px; text-align: right; }
+        td { padding: 8px 0; border-top: 1px solid #f0f0f0; font-size: 0.9rem; }
+        .total { background: #e9f2ff; padding: 12px; border-radius: 10px; color: #0056b3; font-weight: bold; margin-top: 10px; text-align: right; }
         .del-btn { color: #ff3b30; border: none; background: none; padding: 5px; cursor: pointer; }
         .clear-all { text-align: center; margin: 20px 0; }
-        .clear-btn { background: #ff3b30; color: white; padding: 10px 25px; border-radius: 8px; border: none; font-size: 14px; cursor: pointer; opacity: 0.9; }
+        .clear-btn { background: #ff3b30; color: white; padding: 10px 25px; border-radius: 8px; border: none; font-size: 14px; cursor: pointer; }
+        .formula-hint { font-size: 0.75rem; color: #888; margin-bottom: 10px; }
     </style>
 </head>
 <body>
 
-    <h1 style="text-align:center; font-size:1.4rem;">🏗️ 工地計算小幫手</h1>
+    <h1 style="text-align:center; font-size:1.4rem;">🏗️ 工程計算小幫手</h1>
+
+    <div class="card">
+        <h2>高程計算 (放樣)</h2>
+        <p class="formula-hint">公式：(基準點 + 後視) - 設計高 = 箱尺讀數</p>
+        <div class="row">
+            <input type="number" id="elevBM" placeholder="基準點(BM)">
+            <input type="number" id="elevBS" placeholder="後視(BS)">
+            <input type="number" id="elevDesign" placeholder="設計高">
+        </div>
+        <button class="add-btn" onclick="add('leveling')">計算並紀錄讀數</button>
+        <div id="res-leveling"></div>
+        <div class="total" id="tot-leveling">應讀數：0.000 m</div>
+    </div>
 
     <div class="card">
         <h2>水泥澆置 (m³)</h2>
@@ -75,8 +89,7 @@
     </div>
 
     <script>
-        // 從 LocalStorage 載入數據
-        let db = JSON.parse(localStorage.getItem('engData')) || { concrete: [], rebar: [], form: [] };
+        let db = JSON.parse(localStorage.getItem('engData')) || { concrete: [], rebar: [], form: [], leveling: [] };
 
         function save() {
             localStorage.setItem('engData', JSON.stringify(db));
@@ -84,18 +97,28 @@
         }
 
         function add(type) {
-            if (type === 'concrete') {
+            if (type === 'leveling') {
+                let bm = parseFloat(document.getElementById('elevBM').value) || 0;
+                let bs = parseFloat(document.getElementById('elevBS').value) || 0;
+                let ds = parseFloat(document.getElementById('elevDesign').value) || 0;
+                if(bm && ds) {
+                    let reading = (bm + bs) - ds;
+                    db.leveling.push({v: reading, t: `BM:${bm}+BS:${bs}-設:${ds}`});
+                    // 設計高通常每點不同，後視BS跟基準點BM通常不動，所以只清空設計高
+                    document.getElementById('elevDesign').value = '';
+                }
+            } else if (type === 'concrete') {
                 let l = document.getElementById('cL').value, w = document.getElementById('cW').value, h = document.getElementById('cH').value;
                 if(l && w && h) {
                     db.concrete.push({v: l*w*h, t: l+'×'+w+'×'+h});
                     document.getElementById('cL').value=''; document.getElementById('cW').value=''; document.getElementById('cH').value='';
                 }
             } else if (type === 'rebar') {
-                let u = document.getElementById('rT').value, l = document.getElementById('rL').value, n = document.getElementById('rN').value;
+                let u = document.getElementById('rT').value, l = document.getElementById('rLen').value, n = document.getElementById('rNum').value;
                 if(l && n) {
                     let name = document.getElementById('rT').options[document.getElementById('rT').selectedIndex].text.split(' (')[0];
                     db.rebar.push({v: u*l*n, t: name+' | '+l+'m×'+n+'支'});
-                    document.getElementById('rL').value=''; document.getElementById('rN').value='';
+                    document.getElementById('rLen').value=''; document.getElementById('rNum').value='';
                 }
             } else if (type === 'form') {
                 let l = document.getElementById('fL').value, w = document.getElementById('fW').value, s = document.getElementById('fSide').value;
@@ -114,23 +137,36 @@
 
         function clearData() {
             if(confirm('確定要清空所有紀錄嗎？')) {
-                db = { concrete: [], rebar: [], form: [] };
+                db = { concrete: [], rebar: [], form: [], leveling: [] };
                 save();
             }
         }
 
         function render() {
-            ['concrete', 'rebar', 'form'].forEach(type => {
+            ['concrete', 'rebar', 'form', 'leveling'].forEach(type => {
                 let total = 0;
                 let html = '<table>';
                 db[type].forEach((item, i) => {
-                    total += item.v;
-                    html += '<tr><td>'+item.t+'</td><td align="right">'+item.v.toFixed(2)+'</td>';
+                    total = item.v; // 高程通常顯示最後一筆計算結果
+                    if(type !== 'leveling') total = 0; // 非高程則重新計算加總
+                    
+                    html += '<tr><td>'+item.t+'</td><td align="right">'+item.v.toFixed(3)+'</td>';
                     html += '<td align="right"><button class="del-btn" onclick="del(\''+type+'\','+i+')">刪除</button></td></tr>';
                 });
+
+                // 水泥、鋼筋、模板需要加總
+                if(type !== 'leveling') {
+                    let sum = 0;
+                    db[type].forEach(item => sum += item.v);
+                    let unit = (type==='concrete'?' m³':(type==='rebar'?' kg':' m²'));
+                    document.getElementById('tot-'+type).innerText = '總計：'+sum.toFixed(2) + unit;
+                } else {
+                    // 高程計算只顯示最後一筆計算出的讀數
+                    let lastVal = db.leveling.length > 0 ? db.leveling[db.leveling.length-1].v : 0;
+                    document.getElementById('tot-leveling').innerText = '應讀數：'+lastVal.toFixed(3) + ' m';
+                }
+                
                 document.getElementById('res-'+type).innerHTML = html + '</table>';
-                let unit = (type==='concrete'?' m³':(type==='rebar'?' kg':' m²'));
-                document.getElementById('tot-'+type).innerText = '總計：'+total.toFixed(2) + unit;
             });
         }
 

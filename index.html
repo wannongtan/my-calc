@@ -5,8 +5,8 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>工程量計算機</title>
     <style>
-        :root { --primary: #007aff; --bg: #f2f2f7; --success: #34c759; --orange: #ff9500; }
-        body { font-family: -apple-system, sans-serif; background: var(--bg); margin: 0; padding: 15px; padding-bottom: 40px; }
+        :root { --primary: #007aff; --bg: #f2f2f7; --orange: #ff9500; }
+        body { font-family: -apple-system, sans-serif; background: var(--bg); margin: 0; padding: 15px; padding-bottom: 50px; }
         .card { background: white; border-radius: 15px; padding: 15px; box-shadow: 0 4px 12px rgba(0,0,0,0.1); margin-bottom: 15px; }
         h2 { color: var(--primary); font-size: 1.1rem; margin-top: 0; border-left: 4px solid var(--primary); padding-left: 10px; }
         .card.tp h2 { color: var(--orange); border-left-color: var(--orange); }
@@ -16,29 +16,29 @@
         .add-btn { background: var(--primary); margin-bottom: 5px; }
         .tp-btn { background: var(--orange); }
         table { width: 100%; border-collapse: collapse; margin-top: 10px; }
-        td { padding: 8px 0; border-top: 1px solid #f0f0f0; font-size: 0.9rem; }
+        td { padding: 10px 0; border-top: 1px solid #f0f0f0; font-size: 0.9rem; }
         .total { background: #e9f2ff; padding: 12px; border-radius: 10px; color: #0056b3; font-weight: bold; margin-top: 10px; text-align: right; }
-        .del-btn { color: #ff3b30; border: none; background: none; padding: 5px; cursor: pointer; }
-        .clear-all { text-align: center; margin: 20px 0; }
+        .del-btn { color: #ff3b30; border: none; background: none; padding: 5px; cursor: pointer; font-size: 14px; }
+        .clear-all { text-align: center; margin: 30px 0; }
         .clear-btn { background: #ff3b30; color: white; padding: 10px 25px; border-radius: 8px; border: none; font-size: 14px; cursor: pointer; }
         .hint { font-size: 0.75rem; color: #888; margin-bottom: 5px; }
     </style>
 </head>
 <body>
 
-    <h1 style="text-align:center; font-size:1.4rem;">🏗️ 工程計算小幫手</h1>
+    <h1 style="text-align:center; font-size:1.4rem;">🏗️ 工地計算小幫手</h1>
 
     <div class="card">
         <h2>高程放樣 (Stakeout)</h2>
         <div class="hint">公式：(BM + BS) - 設計高 = 應讀箱尺讀數</div>
         <div class="row">
-            <input type="number" id="stBM" placeholder="基準(BM)">
-            <input type="number" id="stBS" placeholder="後視(BS)">
+            <input type="number" id="stBM" placeholder="基準(BM)" step="0.001">
+            <input type="number" id="stBS" placeholder="後視(BS)" step="0.001">
         </div>
         <div class="row">
-            <input type="number" id="stDS" placeholder="設計高">
+            <input type="number" id="stDS" placeholder="設計高" step="0.001">
         </div>
-        <button class="add-btn" onclick="addItem('leveling')">計算放樣讀數</button>
+        <button class="add-btn" onclick="calcItem('leveling')">計算放樣讀數</button>
         <div id="list-leveling"></div>
         <div class="total" id="tot-leveling">應讀數：0.000 m</div>
     </div>
@@ -47,13 +47,13 @@
         <h2>控制點轉點 (TP)</h2>
         <div class="hint">公式：(BM + BS) - 前視(FS) = 新點高程</div>
         <div class="row">
-            <input type="number" id="tpBM" placeholder="舊基準(BM)">
-            <input type="number" id="tpBS" placeholder="後視(BS)">
+            <input type="number" id="tpBM" placeholder="舊基準(BM)" step="0.001">
+            <input type="number" id="tpBS" placeholder="後視(BS)" step="0.001">
         </div>
         <div class="row">
-            <input type="number" id="tpFS" placeholder="前視(FS)">
+            <input type="number" id="tpFS" placeholder="前視(FS)" step="0.001">
         </div>
-        <button class="tp-btn" onclick="addItem('transfer')">計算新點高程</button>
+        <button class="tp-btn" onclick="calcItem('transfer')">計算新點高程</button>
         <div id="list-transfer"></div>
         <div class="total" id="tot-transfer">新點高：0.000 m</div>
     </div>
@@ -65,7 +65,7 @@
             <input type="number" id="cW" placeholder="寬">
             <input type="number" id="cH" placeholder="高">
         </div>
-        <button class="add-btn" onclick="addItem('concrete')">新增水泥紀錄</button>
+        <button class="add-btn" onclick="calcItem('concrete')">新增水泥紀錄</button>
         <div id="list-concrete"></div>
         <div class="total" id="tot-concrete">總計：0.00 m³</div>
     </div>
@@ -84,7 +84,7 @@
             <input type="number" id="rL" placeholder="長度(m)">
             <input type="number" id="rN" placeholder="根數">
         </div>
-        <button class="add-btn" onclick="addItem('rebar')">新增鋼筋紀錄</button>
+        <button class="add-btn" onclick="calcItem('rebar')">新增鋼筋紀錄</button>
         <div id="list-rebar"></div>
         <div class="total" id="tot-rebar">總計：0.00 kg</div>
     </div>
@@ -99,7 +99,107 @@
                 <option value="2">雙面</option>
             </select>
         </div>
-        <button class="add-btn" onclick="addItem('form')">新增模板紀錄</button>
+        <button class="add-btn" onclick="calcItem('form')">新增模板紀錄</button>
         <div id="list-form"></div>
         <div class="total" id="tot-form">總計：0.00 m²</div>
     </div>
+
+    <div class="clear-all">
+        <button class="clear-btn" onclick="resetAll()">🧨 清除所有數據</button>
+    </div>
+
+    <script>
+        // 初始化與讀取資料
+        let db = { concrete: [], rebar: [], form: [], leveling: [], transfer: [] };
+        const savedData = localStorage.getItem('engData');
+        if (savedData) db = JSON.parse(savedData);
+
+        function saveAndRender() {
+            localStorage.setItem('engData', JSON.stringify(db));
+            render();
+        }
+
+        function calcItem(type) {
+            let val = 0; let info = "";
+
+            if (type === 'leveling') {
+                let bm = parseFloat(document.getElementById('stBM').value) || 0;
+                let bs = parseFloat(document.getElementById('stBS').value) || 0;
+                let ds = parseFloat(document.getElementById('stDS').value) || 0;
+                val = (bm + bs) - ds;
+                info = `放樣 | BM:${bm}+BS:${bs}-設:${ds}`;
+                document.getElementById('stDS').value = '';
+            } else if (type === 'transfer') {
+                let bm = parseFloat(document.getElementById('tpBM').value) || 0;
+                let bs = parseFloat(document.getElementById('tpBS').value) || 0;
+                let fs = parseFloat(document.getElementById('tpFS').value) || 0;
+                val = (bm + bs) - fs;
+                info = `轉點 | BM:${bm}+BS:${bs}-FS:${fs}`;
+                if(confirm(`計算完成！新高程為 ${val.toFixed(3)}，是否更新為基準點(BM)？`)) {
+                    document.getElementById('tpBM').value = val.toFixed(3);
+                    document.getElementById('stBM').value = val.toFixed(3);
+                    document.getElementById('tpBS').value = '';
+                    document.getElementById('tpFS').value = '';
+                }
+            } else if (type === 'concrete') {
+                let l = parseFloat(document.getElementById('cL').value) || 0;
+                let w = parseFloat(document.getElementById('cW').value) || 0;
+                let h = parseFloat(document.getElementById('cH').value) || 0;
+                if(l && w && h) { val = l * w * h; info = `${l}×${w}×${h}`; }
+            } else if (type === 'rebar') {
+                let unit = parseFloat(document.getElementById('rT').value);
+                let l = parseFloat(document.getElementById('rL').value) || 0;
+                let n = parseFloat(document.getElementById('rN').value) || 0;
+                let name = document.getElementById('rT').options[document.getElementById('rT').selectedIndex].text.split(' (')[0];
+                if(l && n) { val = unit * l * n; info = `${name} | ${l}m×${n}支`; }
+            } else if (type === 'form') {
+                let l = parseFloat(document.getElementById('fL').value) || 0;
+                let w = parseFloat(document.getElementById('fW').value) || 0;
+                let s = parseInt(document.getElementById('fS').value);
+                if(l && w) { val = l * w * s; info = `${l}×${w} (${s==1?'單':'雙'})`; }
+            }
+
+            if (info !== "") {
+                db[type].push({ v: val, t: info });
+                saveAndRender();
+            }
+        }
+
+        function removeAt(type, i) {
+            db[type].splice(i, 1);
+            saveAndRender();
+        }
+
+        function resetAll() {
+            if(confirm('確定要清空所有紀錄嗎？')) {
+                db = { concrete: [], rebar: [], form: [], leveling: [], transfer: [] };
+                saveAndRender();
+            }
+        }
+
+        function render() {
+            ['concrete', 'rebar', 'form', 'leveling', 'transfer'].forEach(type => {
+                let html = '<table>'; let sum = 0;
+                if(!db[type]) db[type] = [];
+                
+                db[type].forEach((item, i) => {
+                    sum += item.v;
+                    let displayVal = (type === 'leveling' || type === 'transfer') ? item.v.toFixed(3) : item.v.toFixed(2);
+                    html += `<tr><td>${item.t}</td><td align="right">${displayVal}</td>
+                             <td align="right"><button class="del-btn" onclick="removeAt('${type}',${i})">刪除</button></td></tr>`;
+                });
+                document.getElementById(`list-${type}`).innerHTML = html + '</table>';
+                
+                if(type === 'leveling' || type === 'transfer') {
+                    let last = db[type].length > 0 ? db[type][db[type].length-1].v.toFixed(3) : "0.000";
+                    document.getElementById(`tot-${type}`).innerText = (type === 'leveling' ? '應讀數：' : '新點高：') + last + ' m';
+                } else {
+                    let unit = type==='concrete'?' m³':(type==='rebar'?' kg':' m²');
+                    document.getElementById(`tot-${type}`).innerText = `總計：${sum.toFixed(2)}${unit}`;
+                }
+            });
+        }
+        render();
+    </script>
+</body>
+</html>

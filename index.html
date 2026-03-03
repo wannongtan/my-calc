@@ -3,149 +3,19 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>工程全功能計算機 - 整合版</title>
+    <title>工程量計算機 - 最終修復版</title>
     <style>
         :root { 
-            --primary: #5a6b7a;    /* 深石藍 */
-            --bg: #cdc7be;         /* 莫蘭迪水泥灰 */
-            --success: #6b7e7c;    /* 深煙燻綠 */
-            --warning: #8e735b;    /* 深陶褐色 */
-            --card-bg: #ffffff;
-            --text: #2c2c2c;
-            --border: #a1a1a1;
+            --primary: #5a6b7a; --bg: #cdc7be; --success: #6b7e7c; --warning: #8e735b;
+            --card-bg: #ffffff; --text: #2c2c2c; --border: #a1a1a1;
         }
-        body { 
-            font-family: -apple-system, sans-serif; 
-            background: var(--bg); 
-            margin: 0; padding: 15px; 
-            color: var(--text); padding-bottom: 60px;
-        }
-        .card { 
-            background: var(--card-bg); border-radius: 12px; 
-            padding: 18px; box-shadow: 0 4px 15px rgba(0,0,0,0.12); 
-            margin-bottom: 20px; 
-        }
+        body { font-family: -apple-system, sans-serif; background: var(--bg); margin: 0; padding: 15px; color: var(--text); padding-bottom: 60px; }
+        .card { background: var(--card-bg); border-radius: 12px; padding: 18px; box-shadow: 0 4px 15px rgba(0,0,0,0.12); margin-bottom: 20px; }
         h1 { font-size: 1.4rem; color: #44505c; text-align: center; margin-bottom: 20px; font-weight: 800; }
-        h2 { 
-            color: var(--primary); font-size: 1.1rem; margin-top: 0; 
-            border-left: 6px solid var(--primary); padding-left: 12px; margin-bottom: 15px;
-        }
+        h2 { color: var(--primary); font-size: 1.1rem; margin-top: 0; border-left: 6px solid var(--primary); padding-left: 12px; margin-bottom: 15px; }
         .card.tp h2 { color: var(--success); border-left-color: var(--success); }
         .hint { font-size: 0.75rem; color: #666; margin-bottom: 8px; font-style: italic; }
         .row { display: flex; gap: 8px; margin-bottom: 10px; }
-        input, select { 
-            flex: 1; padding: 14px; border: 1px solid var(--border); 
-            border-radius: 8px; font-size: 16px; width: 100%; box-sizing: border-box; outline: none; 
-        }
-        button { 
-            width: 100%; border: none; padding: 15px; border-radius: 10px; 
-            font-size: 16px; font-weight: bold; cursor: pointer; color: white; 
-        }
-        .add-btn { background: var(--primary); margin-bottom: 8px; }
-        .tp-btn { background: var(--success); margin-bottom: 8px; }
-        
-        /* 列表樣式 */
-        .record-list { width: 100%; border-collapse: collapse; margin-top: 12px; }
-        .record-list tr { border-top: 1px solid #eee; }
-        .record-list td { padding: 12px 5px; font-size: 0.85rem; }
-        .record-val { font-weight: bold; text-align: right; }
-        .del-btn { color: #b25d5d; background: none; width: auto; font-size: 13px; font-weight: bold; padding: 5px; box-shadow: none; }
-
-        .total-box { 
-            background: #f4f4f4; padding: 14px; border-radius: 8px; 
-            font-weight: 900; margin-top: 15px; text-align: right; 
-            border: 1px solid #dcdcdc; font-size: 1.05rem;
-        }
-        .btn-group { text-align: center; margin: 40px 0; display: flex; flex-direction: column; gap: 10px; }
-        .clear-btn { background: var(--warning); width: auto; align-self: center; padding: 12px 40px; }
-        .export-btn { background: #5a6b7a; width: auto; align-self: center; padding: 12px 40px; }
-    </style>
-</head>
-<body>
-
-    <h1>🏗️ 工程計算小幫手</h1>
-
-    <div class="card">
-        <h2>高程放樣 (Stakeout)</h2>
-        <div class="hint">公式：(BM + BS) - 設計高 = 讀數</div>
-        <div class="row">
-            <input type="number" id="stBM" placeholder="基準 BM" step="0.001">
-            <input type="number" id="stBS" placeholder="後視 BS" step="0.001">
-        </div>
-        <div class="row">
-            <input type="number" id="stDS" placeholder="設計高程" step="0.001">
-        </div>
-        <button class="add-btn" onclick="addRecord('leveling')">計算放樣讀數</button>
-        <div id="list-leveling"></div>
-        <div class="total-box" id="tot-leveling">應讀數：0.000 m</div>
-    </div>
-
-    <div class="card tp">
-        <h2>控制點轉點 (TP)</h2>
-        <div class="hint">公式：(BM + BS) - FS = 新點高程</div>
-        <div class="row">
-            <input type="number" id="tpBM" placeholder="舊基準 BM" step="0.001">
-            <input type="number" id="tpBS" placeholder="後視 BS" step="0.001">
-        </div>
-        <div class="row">
-            <input type="number" id="tpFS" placeholder="前視 FS" step="0.001">
-        </div>
-        <button class="tp-btn" onclick="addRecord('transfer')">計算新點高程</button>
-        <div id="list-transfer"></div>
-        <div class="total-box" id="tot-transfer">新點高程：0.000 m</div>
-    </div>
-
-    <div class="card">
-        <h2>水泥澆置 (m³)</h2>
-        <div class="row">
-            <input type="number" id="cL" placeholder="長 (m)" step="any">
-            <input type="number" id="cW" placeholder="寬 (m)" step="any">
-            <input type="number" id="cH" placeholder="厚/高 (m)" step="any">
-        </div>
-        <button class="add-btn" onclick="addRecord('concrete')">新增水泥紀錄</button>
-        <div id="list-concrete"></div>
-        <div class="total-box" id="tot-concrete">水泥總計：0.00 m³</div>
-    </div>
-
-    <div class="card">
-        <h2>鋼筋重量 (kg)</h2>
-        <div class="row">
-            <select id="rT">
-                <option value="0.560">D10 #3 (0.560)</option>
-                <option value="0.994">D13 #4 (0.994)</option>
-                <option value="1.550">D16 #5 (1.550)</option>
-                <option value="2.250">D19 #6 (2.250)</option>
-                <option value="3.040">D22 #7 (3.040)</option>
-                <option value="3.980">D25 #8 (3.980)</option>
-            </select>
-            <input type="number" id="rL" placeholder="單根長度 (m)" step="any">
-            <input type="number" id="rN" placeholder="總根數">
-        </div>
-        <button class="add-btn" onclick="addRecord('rebar')">新增鋼筋紀錄</button>
-        <div id="list-rebar"></div>
-        <div class="total-box" id="tot-rebar">鋼筋總和：0.00 kg</div>
-    </div>
-
-    <div class="card">
-        <h2>模板面積 (m²)</h2>
-        <div class="row">
-            <input type="number" id="fL" placeholder="長度 (m)" step="any">
-            <input type="number" id="fW" placeholder="寬度 (m)" step="any">
-            <select id="fS">
-                <option value="1">單面</option>
-                <option value="2">雙面</option>
-            </select>
-        </div>
-        <button class="add-btn" onclick="addRecord('form')">新增模板紀錄</button>
-        <div id="list-form"></div>
-        <div class="total-box" id="tot-form">模板總面積：0.00 m²</div>
-    </div>
-
-    <div class="btn-group">
-        <button class="export-btn" onclick="copyToClipboard()">📋 複製統計結果 (LINE)</button>
-        <button class="clear-btn" onclick="resetAll()">🧨 清除所有數據</button>
-    </div>
-
-    <script>
-        // 初始化
-        let db = { concrete: [],
+        input, select { flex: 1; padding: 14px; border: 1px solid var(--border); border-radius: 8px; font-size: 16px; width: 100%; box-sizing: border-box; outline: none; background: #ffffff; }
+        button { width: 100%; border: none; padding: 15px; border-radius: 10px; font-size: 16px; font-weight: bold; cursor: pointer; color: white; transition: 0.2s; }
+        button:active { transform: scale(

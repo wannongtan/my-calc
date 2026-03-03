@@ -3,86 +3,51 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>工程量計算機 - 列表總計版</title>
+    <title>工程量計算機 - 修復版</title>
     <style>
         :root { 
             --primary: #5a6b7a;    /* 深石藍 */
             --bg: #cdc7be;         /* 莫蘭迪水泥灰 */
-            --success: #6b7e7c;    /* 深煙燻綠 */
             --warning: #8e735b;    /* 深陶褐色 */
             --card-bg: #ffffff;
             --text: #2c2c2c;
             --border: #a1a1a1;
         }
         body { 
-            font-family: -apple-system, "Helvetica Neue", sans-serif; 
+            font-family: -apple-system, sans-serif; 
             background: var(--bg); 
-            margin: 0; 
-            padding: 15px; 
-            color: var(--text);
-            padding-bottom: 60px;
+            margin: 0; padding: 15px; 
+            color: var(--text); padding-bottom: 60px;
         }
         .card { 
-            background: var(--card-bg); 
-            border-radius: 12px; 
-            padding: 18px; 
-            box-shadow: 0 4px 15px rgba(0,0,0,0.12); 
+            background: var(--card-bg); border-radius: 12px; 
+            padding: 18px; box-shadow: 0 4px 15px rgba(0,0,0,0.12); 
             margin-bottom: 20px; 
         }
         h1 { font-size: 1.4rem; color: #44505c; text-align: center; margin-bottom: 20px; font-weight: 800; }
         h2 { 
-            color: var(--primary); 
-            font-size: 1.1rem; 
-            margin-top: 0; 
-            border-left: 6px solid var(--primary); 
-            padding-left: 12px; 
-            margin-bottom: 15px;
+            color: var(--primary); font-size: 1.1rem; margin-top: 0; 
+            border-left: 6px solid var(--primary); padding-left: 12px; margin-bottom: 15px;
         }
-        .hint { font-size: 0.75rem; color: #666; margin-bottom: 8px; font-style: italic; }
         .row { display: flex; gap: 8px; margin-bottom: 10px; }
         input, select { 
-            flex: 1; 
-            padding: 14px; 
-            border: 1px solid var(--border); 
-            border-radius: 8px; 
-            font-size: 16px; 
-            width: 100%; 
-            box-sizing: border-box; 
-            outline: none; 
-            background: #ffffff;
+            flex: 1; padding: 14px; border: 1px solid var(--border); 
+            border-radius: 8px; font-size: 16px; width: 100%; box-sizing: border-box; outline: none; 
         }
         button { 
-            width: 100%; 
-            border: none; 
-            padding: 15px; 
-            border-radius: 10px; 
-            font-size: 16px; 
-            font-weight: bold; 
-            cursor: pointer; 
-            color: white; 
-            box-shadow: 0 2px 8px rgba(0,0,0,0.15);
+            width: 100%; border: none; padding: 15px; border-radius: 10px; 
+            font-size: 16px; font-weight: bold; cursor: pointer; color: white; 
         }
-        button:active { transform: scale(0.97); opacity: 0.9; }
         .add-btn { background: var(--primary); margin-bottom: 8px; }
-        
-        /* 列表樣式 */
         .record-list { width: 100%; border-collapse: collapse; margin-top: 12px; }
         .record-list tr { border-top: 1px solid #eee; }
-        .record-list td { padding: 12px 5px; font-size: 0.9rem; vertical-align: middle; }
-        .record-info { color: #555; }
-        .record-val { font-weight: bold; text-align: right; color: #333; }
-        .del-btn { color: #b25d5d; border: none; background: none; font-size: 13px; font-weight: bold; padding: 5px; width: auto; box-shadow: none; }
-
+        .record-list td { padding: 12px 5px; font-size: 0.9rem; }
+        .record-val { font-weight: bold; text-align: right; }
+        .del-btn { color: #b25d5d; background: none; width: auto; font-size: 13px; font-weight: bold; padding: 5px; box-shadow: none; }
         .total-box { 
-            background: #f4f4f4; 
-            padding: 14px; 
-            border-radius: 8px; 
-            color: #2c2c2c; 
-            font-weight: 900; 
-            margin-top: 15px; 
-            text-align: right; 
-            border: 1px solid #dcdcdc;
-            font-size: 1.05rem;
+            background: #f4f4f4; padding: 14px; border-radius: 8px; 
+            font-weight: 900; margin-top: 15px; text-align: right; 
+            border: 1px solid #dcdcdc; font-size: 1.05rem;
         }
         .btn-group { text-align: center; margin: 40px 0; display: flex; flex-direction: column; gap: 10px; }
         .clear-btn { background: var(--warning); width: auto; align-self: center; padding: 12px 40px; }
@@ -92,3 +57,94 @@
 <body>
 
     <h1>🏗️ 工程計算小幫手</h1>
+
+    <div class="card">
+        <h2>水泥澆置 (m³)</h2>
+        <div class="row">
+            <input type="number" id="cL" placeholder="長 (m)" step="any">
+            <input type="number" id="cW" placeholder="寬 (m)" step="any">
+            <input type="number" id="cH" placeholder="高 (m)" step="any">
+        </div>
+        <button class="add-btn" onclick="addRecord('concrete')">新增水泥紀錄</button>
+        <div id="list-concrete"></div>
+        <div class="total-box" id="tot-concrete">水泥總計：0.00 m³</div>
+    </div>
+
+    <div class="card">
+        <h2>鋼筋重量 (kg)</h2>
+        <div class="row">
+            <select id="rT">
+                <option value="0.560">D10 #3 (0.560)</option>
+                <option value="0.994">D13 #4 (0.994)</option>
+                <option value="1.550">D16 #5 (1.550)</option>
+                <option value="2.250">D19 #6 (2.250)</option>
+                <option value="3.040">D22 #7 (3.040)</option>
+                <option value="3.980">D25 #8 (3.980)</option>
+            </select>
+        </div>
+        <div class="row">
+            <input type="number" id="rL" placeholder="單根長度 (m)" step="any">
+            <input type="number" id="rN" placeholder="總根數">
+        </div>
+        <button class="add-btn" onclick="addRecord('rebar')">新增鋼筋紀錄</button>
+        <div id="list-rebar"></div>
+        <div class="total-box" id="tot-rebar">鋼筋總和：0.00 kg</div>
+    </div>
+
+    <div class="card">
+        <h2>模板面積 (m²)</h2>
+        <div class="row">
+            <input type="number" id="fL" placeholder="長度 (m)" step="any">
+            <input type="number" id="fW" placeholder="寬度 (m)" step="any">
+            <select id="fS">
+                <option value="1">單面</option>
+                <option value="2">雙面</option>
+            </select>
+        </div>
+        <button class="add-btn" onclick="addRecord('form')">新增模板紀錄</button>
+        <div id="list-form"></div>
+        <div class="total-box" id="tot-form">模板總面積：0.00 m²</div>
+    </div>
+
+    <div class="btn-group">
+        <button class="export-btn" onclick="copyToClipboard()">📋 複製統計結果 (LINE)</button>
+        <button class="clear-btn" onclick="resetAll()">🧨 清除所有數據</button>
+    </div>
+
+    <script>
+        // 強力初始化：確保 db 結構正確
+        let db = { concrete: [], rebar: [], form: [] };
+        try {
+            const saved = localStorage.getItem('engData');
+            if (saved) {
+                const parsed = JSON.parse(saved);
+                // 檢查是否包含必要欄位，若無則補齊
+                db.concrete = parsed.concrete || [];
+                db.rebar = parsed.rebar || [];
+                db.form = parsed.form || [];
+            }
+        } catch (e) {
+            console.error("資料讀取失敗，已重置數據");
+            db = { concrete: [], rebar: [], form: [] };
+        }
+
+        function saveAndRefresh() {
+            localStorage.setItem('engData', JSON.stringify(db));
+            renderLists();
+        }
+
+        function addRecord(type) {
+            try {
+                let val = 0; let info = "";
+                if (type === 'concrete') {
+                    let l = parseFloat(document.getElementById('cL').value), w = parseFloat(document.getElementById('cW').value), h = parseFloat(document.getElementById('cH').value);
+                    if(l && w && h) { val = l * w * h; info = `${l}×${w}×${h}`; }
+                    document.getElementById('cL').value=''; document.getElementById('cW').value=''; document.getElementById('cH').value='';
+                } else if (type === 'rebar') {
+                    let unit = parseFloat(document.getElementById('rT').value), l = parseFloat(document.getElementById('rL').value), n = parseFloat(document.getElementById('rN').value);
+                    let name = document.getElementById('rT').options[document.getElementById('rT').selectedIndex].text.split(' (')[0];
+                    if(l && n) { val = unit * l * n; info = `${name} | ${l}m×${n}支`; }
+                    document.getElementById('rL').value=''; document.getElementById('rN').value='';
+                } else if (type === 'form') {
+                    let l = parseFloat(document.getElementById('fL').value), w = parseFloat(document.getElementById('fW').value), s = parseInt(document.getElementById('fS').value);
+                    if

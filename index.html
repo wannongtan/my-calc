@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>工程計算小幫手</title>
+    <title>工程量計算機 - 最終整合版</title>
     <style>
         :root { 
             --primary: #5a6b7a; --bg: #cdc7be; --success: #6b7e7c; --warning: #8e735b;
@@ -37,7 +37,7 @@
 
     <div class="card">
         <h2>高程放樣 (Stakeout)</h2>
-        <div class="hint">公式：(BM + BS) - 設計高 = 讀數</div>
+        <div class="hint">公式：$(BM + BS) - \text{設計高} = \text{應讀讀數}$</div>
         <div class="row">
             <input type="number" id="stBM" placeholder="基準 BM" step="any">
             <input type="number" id="stBS" placeholder="後視 BS" step="any">
@@ -52,8 +52,22 @@
 
     <div class="card tp">
         <h2>控制點轉點 (TP)</h2>
-        <div class="hint">公式：(BM + BS) - FS = 新點高程</div>
+        <div class="hint">公式：$(BM + BS) - FS = \text{新點高程}$</div>
         <div class="row">
             <input type="number" id="tpBM" placeholder="舊基準 BM" step="any">
-            <input type="number" id="tpBS" placeholder="後視 BS" step="
+            <input type="number" id="tpBS" placeholder="後視 BS" step="any">
+        </div>
+        <div class="row">
+            <input type="number" id="tpFS" placeholder="前視 FS" step="any">
+        </div>
+        <button class="tp-btn" onclick="runCalc('transfer')">計算新點高程</button>
+        <div id="list-transfer"></div>
+        <div class="total-box" id="tot-transfer">新點高程：0.000 m</div>
+    </div>
 
+    <div class="card">
+        <h2>水泥澆置 (m³)</h2>
+        <div class="row">
+            <input type="number" id="cL" placeholder="長 (m)" step="any">
+            <input type="number" id="cW" placeholder="寬 (m)" step="any">
+            <input type="number" id="cH" placeholder="厚/高 (m)"

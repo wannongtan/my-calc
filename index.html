@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>工程量計算機 - 最終修復版</title>
+    <title>工程計算小幫手 - 穩定版</title>
     <style>
         :root { 
             --primary: #5a6b7a; --bg: #cdc7be; --success: #6b7e7c; --warning: #8e735b;
@@ -17,5 +17,42 @@
         .hint { font-size: 0.75rem; color: #666; margin-bottom: 8px; font-style: italic; }
         .row { display: flex; gap: 8px; margin-bottom: 10px; }
         input, select { flex: 1; padding: 14px; border: 1px solid var(--border); border-radius: 8px; font-size: 16px; width: 100%; box-sizing: border-box; outline: none; background: #ffffff; }
-        button { width: 100%; border: none; padding: 15px; border-radius: 10px; font-size: 16px; font-weight: bold; cursor: pointer; color: white; transition: 0.2s; }
-        button:active { transform: scale(
+        button { width: 100%; border: none; padding: 15px; border-radius: 10px; font-size: 16px; font-weight: bold; cursor: pointer; color: white; }
+        .add-btn { background: var(--primary); margin-bottom: 8px; }
+        .tp-btn { background: var(--success); margin-bottom: 8px; }
+        .record-list { width: 100%; border-collapse: collapse; margin-top: 12px; }
+        .record-list tr { border-top: 1px solid #eee; }
+        .record-list td { padding: 12px 5px; font-size: 0.85rem; }
+        .record-val { font-weight: bold; text-align: right; }
+        .del-btn { color: #b25d5d; background: none; width: auto; font-size: 13px; font-weight: bold; padding: 5px; box-shadow: none; }
+        .total-box { background: #f4f4f4; padding: 14px; border-radius: 8px; font-weight: 900; margin-top: 15px; text-align: right; border: 1px solid #dcdcdc; font-size: 1.05rem; }
+        .btn-group { text-align: center; margin: 40px 0; display: flex; flex-direction: column; gap: 10px; }
+        .clear-btn { background: var(--warning); width: auto; align-self: center; padding: 12px 40px; }
+        .export-btn { background: #5a6b7a; width: auto; align-self: center; padding: 12px 40px; }
+    </style>
+</head>
+<body>
+
+    <h1>🏗️ 工程計算小幫手</h1>
+
+    <div class="card">
+        <h2>高程放樣 (Stakeout)</h2>
+        <div class="hint">公式：(BM + BS) - 設計高 = 讀數</div>
+        <div class="row">
+            <input type="number" id="stBM" placeholder="基準 BM" step="any">
+            <input type="number" id="stBS" placeholder="後視 BS" step="any">
+        </div>
+        <div class="row">
+            <input type="number" id="stDS" placeholder="設計高程" step="any">
+        </div>
+        <button class="add-btn" onclick="runCalc('leveling')">計算放樣讀數</button>
+        <div id="list-leveling"></div>
+        <div class="total-box" id="tot-leveling">應讀數：0.000 m</div>
+    </div>
+
+    <div class="card tp">
+        <h2>控制點轉點 (TP)</h2>
+        <div class="hint">公式：(BM + BS) - FS = 新點高程</div>
+        <div class="row">
+            <input type="number" id="tpBM" placeholder="舊基準 BM" step="any">
+            <input type="number" id="tpBS" placeholder="後視 BS" step="

@@ -3,11 +3,12 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>工程量計算機 - 修復版</title>
+    <title>工程全功能計算機 - 整合版</title>
     <style>
         :root { 
             --primary: #5a6b7a;    /* 深石藍 */
             --bg: #cdc7be;         /* 莫蘭迪水泥灰 */
+            --success: #6b7e7c;    /* 深煙燻綠 */
             --warning: #8e735b;    /* 深陶褐色 */
             --card-bg: #ffffff;
             --text: #2c2c2c;
@@ -29,6 +30,8 @@
             color: var(--primary); font-size: 1.1rem; margin-top: 0; 
             border-left: 6px solid var(--primary); padding-left: 12px; margin-bottom: 15px;
         }
+        .card.tp h2 { color: var(--success); border-left-color: var(--success); }
+        .hint { font-size: 0.75rem; color: #666; margin-bottom: 8px; font-style: italic; }
         .row { display: flex; gap: 8px; margin-bottom: 10px; }
         input, select { 
             flex: 1; padding: 14px; border: 1px solid var(--border); 
@@ -39,11 +42,15 @@
             font-size: 16px; font-weight: bold; cursor: pointer; color: white; 
         }
         .add-btn { background: var(--primary); margin-bottom: 8px; }
+        .tp-btn { background: var(--success); margin-bottom: 8px; }
+        
+        /* 列表樣式 */
         .record-list { width: 100%; border-collapse: collapse; margin-top: 12px; }
         .record-list tr { border-top: 1px solid #eee; }
-        .record-list td { padding: 12px 5px; font-size: 0.9rem; }
+        .record-list td { padding: 12px 5px; font-size: 0.85rem; }
         .record-val { font-weight: bold; text-align: right; }
         .del-btn { color: #b25d5d; background: none; width: auto; font-size: 13px; font-weight: bold; padding: 5px; box-shadow: none; }
+
         .total-box { 
             background: #f4f4f4; padding: 14px; border-radius: 8px; 
             font-weight: 900; margin-top: 15px; text-align: right; 
@@ -59,11 +66,41 @@
     <h1>🏗️ 工程計算小幫手</h1>
 
     <div class="card">
+        <h2>高程放樣 (Stakeout)</h2>
+        <div class="hint">公式：(BM + BS) - 設計高 = 讀數</div>
+        <div class="row">
+            <input type="number" id="stBM" placeholder="基準 BM" step="0.001">
+            <input type="number" id="stBS" placeholder="後視 BS" step="0.001">
+        </div>
+        <div class="row">
+            <input type="number" id="stDS" placeholder="設計高程" step="0.001">
+        </div>
+        <button class="add-btn" onclick="addRecord('leveling')">計算放樣讀數</button>
+        <div id="list-leveling"></div>
+        <div class="total-box" id="tot-leveling">應讀數：0.000 m</div>
+    </div>
+
+    <div class="card tp">
+        <h2>控制點轉點 (TP)</h2>
+        <div class="hint">公式：(BM + BS) - FS = 新點高程</div>
+        <div class="row">
+            <input type="number" id="tpBM" placeholder="舊基準 BM" step="0.001">
+            <input type="number" id="tpBS" placeholder="後視 BS" step="0.001">
+        </div>
+        <div class="row">
+            <input type="number" id="tpFS" placeholder="前視 FS" step="0.001">
+        </div>
+        <button class="tp-btn" onclick="addRecord('transfer')">計算新點高程</button>
+        <div id="list-transfer"></div>
+        <div class="total-box" id="tot-transfer">新點高程：0.000 m</div>
+    </div>
+
+    <div class="card">
         <h2>水泥澆置 (m³)</h2>
         <div class="row">
             <input type="number" id="cL" placeholder="長 (m)" step="any">
             <input type="number" id="cW" placeholder="寬 (m)" step="any">
-            <input type="number" id="cH" placeholder="高 (m)" step="any">
+            <input type="number" id="cH" placeholder="厚/高 (m)" step="any">
         </div>
         <button class="add-btn" onclick="addRecord('concrete')">新增水泥紀錄</button>
         <div id="list-concrete"></div>
@@ -81,8 +118,6 @@
                 <option value="3.040">D22 #7 (3.040)</option>
                 <option value="3.980">D25 #8 (3.980)</option>
             </select>
-        </div>
-        <div class="row">
             <input type="number" id="rL" placeholder="單根長度 (m)" step="any">
             <input type="number" id="rN" placeholder="總根數">
         </div>
@@ -112,39 +147,5 @@
     </div>
 
     <script>
-        // 強力初始化：確保 db 結構正確
-        let db = { concrete: [], rebar: [], form: [] };
-        try {
-            const saved = localStorage.getItem('engData');
-            if (saved) {
-                const parsed = JSON.parse(saved);
-                // 檢查是否包含必要欄位，若無則補齊
-                db.concrete = parsed.concrete || [];
-                db.rebar = parsed.rebar || [];
-                db.form = parsed.form || [];
-            }
-        } catch (e) {
-            console.error("資料讀取失敗，已重置數據");
-            db = { concrete: [], rebar: [], form: [] };
-        }
-
-        function saveAndRefresh() {
-            localStorage.setItem('engData', JSON.stringify(db));
-            renderLists();
-        }
-
-        function addRecord(type) {
-            try {
-                let val = 0; let info = "";
-                if (type === 'concrete') {
-                    let l = parseFloat(document.getElementById('cL').value), w = parseFloat(document.getElementById('cW').value), h = parseFloat(document.getElementById('cH').value);
-                    if(l && w && h) { val = l * w * h; info = `${l}×${w}×${h}`; }
-                    document.getElementById('cL').value=''; document.getElementById('cW').value=''; document.getElementById('cH').value='';
-                } else if (type === 'rebar') {
-                    let unit = parseFloat(document.getElementById('rT').value), l = parseFloat(document.getElementById('rL').value), n = parseFloat(document.getElementById('rN').value);
-                    let name = document.getElementById('rT').options[document.getElementById('rT').selectedIndex].text.split(' (')[0];
-                    if(l && n) { val = unit * l * n; info = `${name} | ${l}m×${n}支`; }
-                    document.getElementById('rL').value=''; document.getElementById('rN').value='';
-                } else if (type === 'form') {
-                    let l = parseFloat(document.getElementById('fL').value), w = parseFloat(document.getElementById('fW').value), s = parseInt(document.getElementById('fS').value);
-                    if
+        // 初始化
+        let db = { concrete: [],
